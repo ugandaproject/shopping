@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Shirazy Shopping Center</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Login Page Specific Styles */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            margin: 0;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-container .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-container .logo h1 {
+            font-size: 28px;
+            color: #333;
+            margin: 0;
+        }
+
+        .login-container .logo p {
+            color: #666;
+            margin: 5px 0 0;
+        }
+
+        .login-container .logo .shop-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .auth-links p {
+            margin: 5px 0;
+        }
+
+        .auth-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .language-switcher-login {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .language-switcher-login .lang-btn {
+            padding: 5px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .language-switcher-login .lang-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .language-switcher-login .lang-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle input {
+            padding-right: 45px;
+        }
+
+        .password-toggle .toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #999;
+            padding: 5px;
+        }
+
+        .password-toggle .toggle-btn:hover {
+            color: #333;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* RTL Support */
+        body[dir="rtl"] .password-toggle .toggle-btn {
+            right: auto;
+            left: 12px;
+        }
+
+        body[dir="rtl"] .form-group input {
+            text-align: right;
+        }
+
+        body[dir="rtl"] .login-container {
+            direction: rtl;
+        }
+
+        body[dir="rtl"] .auth-links {
+            direction: rtl;
+        }
+
+        body[dir="rtl"] .error-message,
+        body[dir="rtl"] .success-message {
+            direction: rtl;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 25px 20px;
+            }
+
+            .login-container .logo h1 {
+                font-size: 22px;
+            }
+
+            .login-container .logo .shop-icon {
+                font-size: 36px;
+            }
+
+            .btn-login {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .form-group input {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .language-switcher-login .lang-btn {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .login-container {
+                padding: 20px 15px;
+            }
+
+            .login-container .logo h1 {
+                font-size: 18px;
+            }
+
+            .language-switcher-login {
+                gap: 4px;
+            }
+
+            .language-switcher-login .lang-btn {
+                font-size: 9px;
+                padding: 3px 6px;
+            }
+        }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="logo">
+            <span class="shop-icon">🏪</span>
+            <h1 id="app-title">Shirazy Shopping Center</h1>
+            <p id="welcome-text">Welcome back! Please login to continue</p>
+        </div>
+
+        <div class="language-switcher-login">
+            <button onclick="setLanguage('en')" class="lang-btn active" data-lang="en">🇬🇧 EN</button>
+            <button onclick="setLanguage('ar')" class="lang-btn" data-lang="ar">🇸🇦 عربي</button>
+            <button onclick="setLanguage('fr')" class="lang-btn" data-lang="fr">🇫🇷 FR</button>
+            <button onclick="setLanguage('es')" class="lang-btn" data-lang="es">🇪🇸 ES</button>
+            <button onclick="setLanguage('sw')" class="lang-btn" data-lang="sw">🇹🇿 SW</button>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label id="username-label">👤 Username</label>
+                <input type="text" id="username" placeholder="Enter your username" required autofocus>
+            </div>
+
+            <div class="form-group password-toggle">
+                <label id="password-label">🔒 Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+                <button type="button" class="toggle-btn" onclick="togglePassword('password')">👁️</button>
+            </div>
+
+            <div class="loading-spinner" id="loading-spinner">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #666;" id="loading-text">Logging in...</p>
+            </div>
+
+            <button type="submit" class="btn-login" id="login-btn">🔐 Login</button>
+        </form>
+
+        <div class="auth-links">
+            <p id="no-account-text">Don't have an account? <a href="register.html" id="register-link">Register here</a></p>
+            <p style="margin-top: 5px; font-size: 12px; color: #999;" id="demo-text">Demo: admin / admin123</p>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>
