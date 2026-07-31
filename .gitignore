@@ -1,0 +1,49 @@
+# Environment variables - NEVER COMMIT THESE!
+.env
+.env.*
+*.env
+.env.local
+.env.*.local
+
+# Config files with secrets
+config.js
+config.local.js
+*.local
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build files
+dist/
+build/
+*.min.js
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
+
+# Secret files
+*.pem
+*.key
+*.crt
+*.p12
+*.secret
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
