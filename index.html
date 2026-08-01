@@ -1,1 +1,330 @@
-hello
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="app-title">Shirazy Shopping Center - POS System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-top">
+        <h1 id="app-name">🏪 Shirazy Shopping Center</h1>
+        <div class="header-controls">
+            <!-- Language Switcher -->
+            <div class="language-switcher">
+                <button onclick="setLanguage('en')" class="lang-btn active" data-lang="en">🇬🇧 EN</button>
+                <button onclick="setLanguage('ar')" class="lang-btn" data-lang="ar">🇸🇦 عربي</button>
+                <button onclick="setLanguage('fr')" class="lang-btn" data-lang="fr">🇫🇷 FR</button>
+                <button onclick="setLanguage('es')" class="lang-btn" data-lang="es">🇪🇸 ES</button>
+                <button onclick="setLanguage('sw')" class="lang-btn" data-lang="sw">🇹🇿 SW</button>
+            </div>
+            <span id="user-display">👤 Admin</span>
+            <button onclick="logout()" class="btn-logout" id="logout-btn">🚪 Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div class="tabs" id="main-tabs">
+            <button class="tab-button active" data-tab="sell" id="tab-sell">💰 Sell</button>
+            <button class="tab-button" data-tab="add-product" id="tab-add-product">➕ Add Product</button>
+            <button class="tab-button" data-tab="categories" id="tab-categories">📁 Categories</button>
+            <button class="tab-button" data-tab="expenses" id="tab-expenses">💸 Expenses</button>
+            <button class="tab-button" data-tab="treasury" id="tab-treasury">🏦 Treasury</button>
+            <button class="tab-button" data-tab="profit" id="tab-profit">📈 Profit</button>
+            <button class="tab-button" data-tab="orders" id="tab-orders">📋 Orders</button>
+        </div>
+
+        <!-- Sell Tab -->
+        <div id="sell" class="tab-content active">
+            <h2 id="sell-title">💰 Point of Sale</h2>
+            
+            <div class="categories-nav" id="categories-nav">
+                <button onclick="app.filterProducts('all')" class="active" id="all-products-btn">All Products</button>
+            </div>
+            
+            <div class="search-container">
+                <div class="search-box">
+                    <label id="search-label">🔍 Search by Name:</label>
+                    <input type="text" id="product-search" placeholder="Type product name..." onkeyup="app.searchProducts()">
+                </div>
+            </div>
+            
+            <div class="products-wrapper">
+                <div class="products-grid" id="products-grid"></div>
+            </div>
+        </div>
+
+        <!-- Add Product Tab -->
+        <div id="add-product" class="tab-content">
+            <h2 id="add-product-title">➕ Add New Product</h2>
+            <form id="add-product-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label id="barcode-label">📦 Barcode:</label>
+                        <input type="text" id="barcode" placeholder="Enter barcode">
+                    </div>
+                    <div class="form-group">
+                        <label id="product-name-label">📝 Product Name *:</label>
+                        <input type="text" id="product-name" required placeholder="Enter product name">
+                    </div>
+                    <div class="form-group">
+                        <label id="buy-price-label">💰 Buy Price *:</label>
+                        <input type="number" step="0.01" id="buy-price" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label id="sell-price-label">💵 Sell Price *:</label>
+                        <input type="number" step="0.01" id="sell-price" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label id="initial-stock-label">📊 Initial Stock:</label>
+                        <input type="number" id="inventory" value="0" placeholder="Quantity">
+                    </div>
+                    <div class="form-group">
+                        <label id="category-label">📁 Category:</label>
+                        <select id="category-id">
+                            <option value="0">No Category</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label id="product-image-label">🖼️ Product Image:</label>
+                        <input type="file" id="product-image" accept="image/*">
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="add-product-btn">✅ Add Product</button>
+            </form>
+        </div>
+
+        <!-- Categories Tab -->
+        <div id="categories" class="tab-content">
+            <h2 id="manage-categories-title">📁 Manage Categories</h2>
+            <form id="category-form">
+                <input type="hidden" id="category-id">
+                <div class="form-group">
+                    <label id="category-name-label">Category Name:</label>
+                    <input type="text" id="category-name" placeholder="Enter category name" required>
+                </div>
+                <button type="submit" class="btn-submit" id="save-category-btn">💾 Save Category</button>
+            </form>
+            <h3 id="category-list-title">Category List</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr><th id="id-header">ID</th><th id="name-header">Name</th><th id="actions-header">Actions</th></tr>
+                    </thead>
+                    <tbody id="categories-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Expenses Tab -->
+        <div id="expenses" class="tab-content">
+            <h2 id="expenses-title">💸 Expenses Management</h2>
+            <form id="expense-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label id="expense-date-label">📅 Date:</label>
+                        <input type="date" id="expense-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label id="expense-category-label">📁 Category:</label>
+                        <select id="expense-category" required>
+                            <option value="Rent">Rent</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Salaries">Salaries</option>
+                            <option value="Inventory">Inventory</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label id="expense-amount-label">💰 Amount:</label>
+                        <input type="number" step="0.01" id="expense-amount" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label id="expense-payment-label">💳 Payment Method:</label>
+                        <select id="expense-payment">
+                            <option value="cash">Cash</option>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="card">Credit Card</option>
+                            <option value="mobile">Mobile Money</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label id="expense-description-label">📝 Description:</label>
+                        <textarea id="expense-description" rows="2" placeholder="Enter description"></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit" id="save-expense-btn">✅ Save Expense</button>
+            </form>
+            
+            <h3 id="expenses-list-title">Expenses List</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr><th id="exp-date-header">Date</th><th id="exp-category-header">Category</th><th id="exp-desc-header">Description</th><th id="exp-amount-header">Amount</th><th id="exp-payment-header">Payment</th><th id="exp-actions-header">Actions</th></tr>
+                    </thead>
+                    <tbody id="expenses-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Treasury Tab -->
+        <div id="treasury" class="tab-content">
+            <h2 id="treasury-title">🏦 Treasury Report</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="treasury-product">Product</th>
+                            <th id="treasury-quantity">Quantity</th>
+                            <th id="treasury-buy-price">Buy Price</th>
+                            <th id="treasury-sell-price">Sell Price</th>
+                            <th id="treasury-total-value">Total Value</th>
+                            <th id="treasury-total-cost">Total Cost</th>
+                            <th id="treasury-profit">Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="treasury-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Profit Tab -->
+        <div id="profit" class="tab-content">
+            <h2 id="profit-title">📈 Profit & Loss Report</h2>
+            <div class="profit-cards" id="profit-report">
+                <div class="profit-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h3 id="total-sales-label">💰 Total Sales</h3>
+                    <div class="amount" id="total-sales">$0.00</div>
+                </div>
+                <div class="profit-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <h3 id="gross-profit-label">📊 Gross Profit</h3>
+                    <div class="amount" id="total-profit">$0.00</div>
+                </div>
+                <div class="profit-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                    <h3 id="total-expenses-label">💸 Total Expenses</h3>
+                    <div class="amount" id="total-expenses">$0.00</div>
+                </div>
+                <div class="profit-card" id="net-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <h3 id="net-profit-label">🎯 Net Profit</h3>
+                    <div class="amount" id="net-profit">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="orders" class="tab-content">
+            <h2 id="orders-title">📋 Orders List</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="order-id-header">ID</th>
+                            <th id="order-client-header">Client</th>
+                            <th id="order-phone-header">Phone</th>
+                            <th id="order-total-header">Total</th>
+                            <th id="order-paid-header">Paid</th>
+                            <th id="order-remaining-header">Remaining</th>
+                            <th id="order-date-header">Date</th>
+                            <th id="order-actions-header">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shopping Cart -->
+    <button class="cart-toggle" id="cart-toggle" title="Shopping Cart">
+        🛒
+        <span class="cart-badge" id="cart-badge">0</span>
+    </button>
+
+    <div class="cart-container" id="cart-container">
+        <div class="bill-products">
+            <h2 id="cart-title">🛒 Shopping Cart <button id="close-cart">✖️</button></h2>
+            
+            <div class="form-group">
+                <label id="client-name-label">👤 Client Name:</label>
+                <input type="text" id="client-name" placeholder="Enter client name">
+            </div>
+            <div class="form-group">
+                <label id="client-phone-label">📞 Client Phone:</label>
+                <input type="text" id="client-phone" placeholder="Enter client phone">
+            </div>
+            
+            <div class="form-group">
+                <label id="payment-type-label">💳 Payment Type:</label>
+                <select id="payment-type">
+                    <option value="cash">Cash</option>
+                    <option value="bank">Bank Transfer</option>
+                    <option value="card">Credit Card</option>
+                    <option value="mobile">Mobile Money</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="transaction-label">🔢 Transaction Number:</label>
+                <input type="text" id="transaction-number" placeholder="Enter transaction number">
+            </div>
+            <div class="form-group">
+                <label id="paid-amount-label">💵 Amount Paid:</label>
+                <input type="number" step="0.01" id="paid-amount" value="0" oninput="app.calculateRemaining()">
+            </div>
+            <div class="form-group">
+                <label id="remaining-label">💰 Remaining:</label>
+                <div id="remaining-amount" style="font-size: 20px; font-weight: bold;">$0.00</div>
+            </div>
+            
+            <div id="selected-products"></div>
+            
+            <p style="font-size: 18px; font-weight: bold; border-top: 2px solid #ddd; padding-top: 10px;">
+                <span id="cart-total-label">Total</span>
+                <span id="cart-total" style="float: right;">$0.00</span>
+            </p>
+            
+            <button id="reset-market-list" style="background-color: #f44336;">🗑️ Reset Cart</button>
+            <button id="print-invoice" style="background-color: #4CAF50;">🖨️ Print Invoice</button>
+        </div>
+    </div>
+
+    <!-- Quantity Modal -->
+    <div id="quantity-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="select-quantity-title">Select Quantity</h2>
+            <p id="product-name-display"></p>
+            <input type="number" id="quantity-input" min="1" value="1">
+            <p id="item-profit-display" style="color: #4CAF50;"></p>
+            <button id="add-to-bill">✅ Add to Cart</button>
+            <button id="close-quantity-modal">❌ Cancel</button>
+        </div>
+    </div>
+    <div class="overlay" id="quantity-overlay"></div>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="edit-product-title">Edit Product</h2>
+            <form id="edit-product-form">
+                <input type="hidden" id="edit-id">
+                <input type="text" id="edit-name" placeholder="Product Name" required>
+                <input type="number" step="0.01" id="edit-buy-price" placeholder="Buy Price" required>
+                <input type="number" step="0.01" id="edit-sell-price" placeholder="Sell Price" required>
+                <input type="number" id="edit-inventory" placeholder="Stock" required>
+                <select id="edit-category">
+                    <option value="0">No Category</option>
+                </select>
+                <button type="submit" id="save-changes-btn">💾 Save Changes</button>
+                <button type="button" id="close-edit-modal">❌ Cancel</button>
+            </form>
+        </div>
+    </div>
+    <div class="overlay" id="edit-overlay"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
