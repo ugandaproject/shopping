@@ -4,9 +4,9 @@
 
 // === IMPORTANT: Replace with your GitHub credentials ===
 const GITHUB_CONFIG = {
-    token: 'YOUR_GITHUB_TOKEN_HERE',     // Your Personal Access Token
-    owner: 'YOUR_GITHUB_USERNAME',       // Your GitHub username
-    repo: 'YOUR_REPO_NAME',              // Your repository name
+    token: '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',     // Your Personal Access Token
+    owner: 'ugandaproject',       // Your GitHub username
+    repo: 'shopping',              // Your repository name
     branch: 'main'                       // or 'master'
 };
 
