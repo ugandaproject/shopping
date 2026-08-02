@@ -4,7 +4,7 @@
 
 // === IMPORTANT: Replace with your GitHub credentials ===
 const GITHUB_CONFIG = {
-    token: 'ghp_YOUR_NEW_TOKEN_HERE',     // Replace with your new token
+    token: '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',     // Replace with your new token
     owner: 'ugandaproject',                // Your GitHub username
     repo: 'shopping',                      // Your repository name
     branch: 'main'                         // or 'master'
