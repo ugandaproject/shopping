@@ -379,92 +379,90 @@ const Lang = {
         document.body.style.textAlign = this.translations.text_align || 'left';
     },
     
- updateUI() {
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.dataset.i18n;
-        el.textContent = this.get(key);
-    });
-    
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.dataset.i18nPlaceholder;
-        el.placeholder = this.get(key);
-    });
-    
-    document.title = this.get('app_name') + ' - POS System';
-    
-    const appName = document.getElementById('app-name');
-    if (appName) appName.innerHTML = '🏪 ' + this.get('app_name');
-    
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) logoutBtn.innerHTML = '🚪 ' + this.get('logout');
-    
-    const sellTitle = document.getElementById('sell-title');
-    if (sellTitle) sellTitle.textContent = '💰 ' + this.get('sell_title');
-    
-    const allProductsBtn = document.getElementById('all-products-btn');
-    if (allProductsBtn) allProductsBtn.textContent = this.get('all_products');
-    
-    const cartTitle = document.getElementById('cart-title');
-    if (cartTitle) cartTitle.innerHTML = '🛒 ' + this.get('shopping_cart') + ' <button id="close-cart">✖️</button>';
-    
-    const addProductTitle = document.getElementById('add-product-title');
-    if (addProductTitle) addProductTitle.textContent = '➕ ' + this.get('add_product_title');
-    
-    const manageCategoriesTitle = document.getElementById('manage-categories-title');
-    if (manageCategoriesTitle) manageCategoriesTitle.textContent = '📁 ' + this.get('manage_categories');
-    
-    const expensesTitle = document.getElementById('expenses-title');
-    if (expensesTitle) expensesTitle.textContent = '💸 ' + this.get('expenses_title');
-    
-    const treasuryTitle = document.getElementById('treasury-title');
-    if (treasuryTitle) treasuryTitle.textContent = '🏦 ' + this.get('treasury_title');
-    
-    const profitTitle = document.getElementById('profit-title');
-    if (profitTitle) profitTitle.textContent = '📈 ' + this.get('profit_title');
-    
-    const ordersTitle = document.getElementById('orders-title');
-    if (ordersTitle) ordersTitle.textContent = '📋 ' + this.get('orders_title');
-    
-    const tabTranslations = {
-        'sell': 'tab_sell',
-        'add-product': 'tab_add_product',
-        'categories': 'tab_categories',
-        'expenses': 'tab_expenses',
-        'treasury': 'tab_treasury',
-        'profit': 'tab_profit',
-        'orders': 'tab_orders'
-    };
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        const key = btn.dataset.tab;
-        if (tabTranslations[key]) {
-            btn.textContent = this.get(tabTranslations[key]);
-        }
-    });
-    
-    // Fixed: Convert HTMLOptionsCollection to array before using forEach
-    ['payment-type', 'expense-payment'].forEach(id => {
-        const select = document.getElementById(id);
-        if (select && select.options) {
-            const options = Array.from(select.options);
-            if (options.length > 0 && options[0]) options[0].text = this.get('payment_cash');
-            if (options.length > 1 && options[1]) options[1].text = this.get('payment_bank');
-            if (options.length > 2 && options[2]) options[2].text = this.get('payment_card');
-            if (options.length > 3 && options[3]) options[3].text = this.get('payment_mobile');
-        }
-    });
-    
-    // Fixed: Convert HTMLOptionsCollection to array before using forEach
-    const expenseCategorySelect = document.getElementById('expense-category');
-    if (expenseCategorySelect && expenseCategorySelect.options) {
-        const options = Array.from(expenseCategorySelect.options);
-        const cats = ['rent', 'utilities', 'salaries', 'inventory', 'marketing', 'maintenance', 'transport', 'other'];
-        for (let i = 0; i < options.length && i < cats.length; i++) {
-            if (options[i]) {
-                options[i].text = this.get(cats[i]);
+    updateUI() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.dataset.i18n;
+            el.textContent = this.get(key);
+        });
+        
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.dataset.i18nPlaceholder;
+            el.placeholder = this.get(key);
+        });
+        
+        document.title = this.get('app_name') + ' - POS System';
+        
+        const appName = document.getElementById('app-name');
+        if (appName) appName.innerHTML = '🏪 ' + this.get('app_name');
+        
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) logoutBtn.innerHTML = '🚪 ' + this.get('logout');
+        
+        const sellTitle = document.getElementById('sell-title');
+        if (sellTitle) sellTitle.textContent = '💰 ' + this.get('sell_title');
+        
+        const allProductsBtn = document.getElementById('all-products-btn');
+        if (allProductsBtn) allProductsBtn.textContent = this.get('all_products');
+        
+        const cartTitle = document.getElementById('cart-title');
+        if (cartTitle) cartTitle.innerHTML = '🛒 ' + this.get('shopping_cart') + ' <button id="close-cart">✖️</button>';
+        
+        const addProductTitle = document.getElementById('add-product-title');
+        if (addProductTitle) addProductTitle.textContent = '➕ ' + this.get('add_product_title');
+        
+        const manageCategoriesTitle = document.getElementById('manage-categories-title');
+        if (manageCategoriesTitle) manageCategoriesTitle.textContent = '📁 ' + this.get('manage_categories');
+        
+        const expensesTitle = document.getElementById('expenses-title');
+        if (expensesTitle) expensesTitle.textContent = '💸 ' + this.get('expenses_title');
+        
+        const treasuryTitle = document.getElementById('treasury-title');
+        if (treasuryTitle) treasuryTitle.textContent = '🏦 ' + this.get('treasury_title');
+        
+        const profitTitle = document.getElementById('profit-title');
+        if (profitTitle) profitTitle.textContent = '📈 ' + this.get('profit_title');
+        
+        const ordersTitle = document.getElementById('orders-title');
+        if (ordersTitle) ordersTitle.textContent = '📋 ' + this.get('orders_title');
+        
+        const tabTranslations = {
+            'sell': 'tab_sell',
+            'add-product': 'tab_add_product',
+            'categories': 'tab_categories',
+            'expenses': 'tab_expenses',
+            'treasury': 'tab_treasury',
+            'profit': 'tab_profit',
+            'orders': 'tab_orders'
+        };
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            const key = btn.dataset.tab;
+            if (tabTranslations[key]) {
+                btn.textContent = this.get(tabTranslations[key]);
+            }
+        });
+        
+        ['payment-type', 'expense-payment'].forEach(id => {
+            const select = document.getElementById(id);
+            if (select && select.options) {
+                const options = select.options;
+                if (options.length > 0 && options[0]) options[0].text = this.get('payment_cash');
+                if (options.length > 1 && options[1]) options[1].text = this.get('payment_bank');
+                if (options.length > 2 && options[2]) options[2].text = this.get('payment_card');
+                if (options.length > 3 && options[3]) options[3].text = this.get('payment_mobile');
+            }
+        });
+        
+        const expenseCategorySelect = document.getElementById('expense-category');
+        if (expenseCategorySelect && expenseCategorySelect.options) {
+            const options = expenseCategorySelect.options;
+            const cats = ['rent', 'utilities', 'salaries', 'inventory', 'marketing', 'maintenance', 'transport', 'other'];
+            for (let i = 0; i < options.length && i < cats.length; i++) {
+                if (options[i]) {
+                    options[i].text = this.get(cats[i]);
+                }
             }
         }
     }
-}
 };
 
 function setLanguage(lang) {
@@ -1821,5 +1819,3 @@ document.addEventListener('DOMContentLoaded', () => {
 window.app = app;
 window.logout = logout;
 window.setLanguage = setLanguage;
-
-
