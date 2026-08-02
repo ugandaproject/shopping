@@ -2,9 +2,10 @@
 // GITHUB API CONFIGURATION
 // ============================================
 
-// === IMPORTANT: Replace with your GitHub credentials ===
+// ⚠️ IMPORTANT: Replace with your NEW GitHub token
+// Get token from: https://github.com/settings/tokens
 const GITHUB_CONFIG = {
-    token: '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',  // Replace with your new token
+    token: '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',     // Replace with your new token
     owner: 'ugandaproject',                // Your GitHub username
     repo: 'shopping',                      // Your repository name
     branch: 'main'                         // or 'master'
@@ -15,26 +16,9 @@ const GITHUB_CONFIG = {
 // ============================================
 
 const GitHubAPI = {
-    // Validate token format
-    validateToken() {
-        if (!GITHUB_CONFIG.token || GITHUB_CONFIG.token === 'YOUR_NEW_GITHUB_TOKEN_HERE') {
-            console.warn('⚠️ GitHub token not configured. Using localStorage only.');
-            return false;
-        }
-        if (GITHUB_CONFIG.token.length < 20) {
-            console.warn('⚠️ GitHub token appears invalid (too short). Using localStorage only.');
-            return false;
-        }
-        return true;
-    },
-
     // Read a file from GitHub
     async readFile(path) {
         try {
-            if (!this.validateToken()) {
-                return null;
-            }
-
             const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}?ref=${GITHUB_CONFIG.branch}`;
             const response = await fetch(url, {
                 headers: {
@@ -44,12 +28,13 @@ const GitHubAPI = {
             });
             
             if (!response.ok) {
-                if (response.status === 401) {
-                    console.warn('⚠️ GitHub authentication failed. Token may be invalid or expired.');
-                    return null;
-                }
                 if (response.status === 404) {
                     return null;
+                }
+                if (response.status === 401) {
+                    console.error('❌ GitHub authentication failed! Your token is invalid or expired.');
+                    console.error('Please generate a new token at: https://github.com/settings/tokens');
+                    throw new Error('GitHub authentication failed - Invalid token');
                 }
                 throw new Error(`GitHub API error: ${response.status}`);
             }
@@ -67,17 +52,13 @@ const GitHubAPI = {
             };
         } catch (error) {
             console.error('Error reading file from GitHub:', error);
-            return null;
+            throw error;
         }
     },
 
     // Write a file to GitHub
     async writeFile(path, content, message) {
         try {
-            if (!this.validateToken()) {
-                throw new Error('GitHub token not configured');
-            }
-
             const existing = await this.readFile(path);
             
             const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
@@ -114,7 +95,9 @@ const GitHubAPI = {
             if (!response.ok) {
                 const errorData = await response.json();
                 if (response.status === 401) {
-                    throw new Error('GitHub authentication failed. Please check your token.');
+                    console.error('❌ GitHub authentication failed! Your token is invalid or expired.');
+                    console.error('Please generate a new token at: https://github.com/settings/tokens');
+                    throw new Error('GitHub authentication failed - Invalid token');
                 }
                 throw new Error(`GitHub API error: ${response.status} - ${errorData.message}`);
             }
@@ -124,45 +107,13 @@ const GitHubAPI = {
             return result;
         } catch (error) {
             console.error('Error writing file to GitHub:', error);
-            this.saveToLocalStorage(path, content);
             throw error;
         }
     },
 
-    // Fallback: Save to localStorage
-    saveToLocalStorage(path, content) {
-        try {
-            const table = path.replace('.json', '').replace('db/', '');
-            const data = {};
-            data[table] = content;
-            localStorage.setItem(`db_${table}`, JSON.stringify(data));
-            console.log(`💾 Saved to localStorage (backup): ${path}`);
-        } catch (e) {
-            console.error('Error saving to localStorage:', e);
-        }
-    },
-
-    // Load from localStorage
-    loadFromLocalStorage(table) {
-        try {
-            const data = localStorage.getItem(`db_${table}`);
-            if (data) {
-                const parsed = JSON.parse(data);
-                return parsed[table] || [];
-            }
-            return [];
-        } catch (e) {
-            console.error('Error loading from localStorage:', e);
-            return [];
-        }
-    },
-
-    // Check if GitHub is available
+    // Check GitHub connection
     async testConnection() {
         try {
-            if (!this.validateToken()) {
-                return false;
-            }
             const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}`;
             const response = await fetch(url, {
                 headers: {
@@ -170,8 +121,13 @@ const GitHubAPI = {
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
+            if (response.status === 401) {
+                console.error('❌ GitHub token is invalid!');
+                return false;
+            }
             return response.ok;
         } catch (error) {
+            console.error('GitHub connection test failed:', error);
             return false;
         }
     }
@@ -189,20 +145,12 @@ const DB = {
             
             if (result && result.content) {
                 const records = result.content[table] || [];
-                this._cacheToLocalStorage(table, records);
                 return records;
             }
-            
-            const localData = GitHubAPI.loadFromLocalStorage(table);
-            if (localData.length > 0) {
-                await this.saveAll(table, localData);
-                return localData;
-            }
-            
             return [];
         } catch (error) {
             console.error(`Error loading ${table}:`, error);
-            return GitHubAPI.loadFromLocalStorage(table);
+            throw error;
         }
     },
 
@@ -217,23 +165,10 @@ const DB = {
                 data,
                 `Update ${table} data`
             );
-            
-            this._cacheToLocalStorage(table, records);
             return { success: true };
         } catch (error) {
             console.error(`Error saving ${table}:`, error);
-            this._cacheToLocalStorage(table, records);
-            return { success: false, error: error.message };
-        }
-    },
-
-    _cacheToLocalStorage(table, records) {
-        try {
-            const data = {};
-            data[table] = records;
-            localStorage.setItem(`db_${table}`, JSON.stringify(data));
-        } catch (e) {
-            console.error('Error caching to localStorage:', e);
+            throw error;
         }
     },
 
@@ -545,8 +480,7 @@ const AppState = {
     cartProfit: 0,
     currentTab: 'sell',
     isCartVisible: true,
-    currentCategory: 'all',
-    isOffline: false
+    currentCategory: 'all'
 };
 
 // ============================================
@@ -560,15 +494,14 @@ class ShoppingApp {
     }
 
     async init() {
-        // Check GitHub connection
+        // Test GitHub connection first
         const isConnected = await GitHubAPI.testConnection();
-        AppState.isOffline = !isConnected;
-        if (AppState.isOffline) {
-            console.warn('⚠️ Running in offline mode (localStorage only)');
-            this.showOfflineNotification();
-        } else {
-            console.log('✅ Connected to GitHub API');
+        if (!isConnected) {
+            console.error('❌ Cannot connect to GitHub. Please check your token.');
+            alert('⚠️ GitHub connection failed! Please check your token in app.js');
+            return;
         }
+        console.log('✅ Connected to GitHub API');
 
         const savedLang = localStorage.getItem('language') || 'en';
         await Lang.loadLanguage(savedLang);
@@ -593,49 +526,6 @@ class ShoppingApp {
         const today = new Date().toISOString().split('T')[0];
         const expenseDate = document.getElementById('expense-date');
         if (expenseDate) expenseDate.value = today;
-
-        // Show GitHub status
-        this.updateGitHubStatus(isConnected);
-    }
-
-    showOfflineNotification() {
-        const notification = document.createElement('div');
-        notification.id = 'offline-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #ff9800;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            z-index: 9999;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            animation: slideDown 0.3s ease;
-        `;
-        notification.textContent = '⚠️ Offline Mode - Data saved locally only';
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transition = 'opacity 0.5s';
-            setTimeout(() => notification.remove(), 500);
-        }, 5000);
-    }
-
-    updateGitHubStatus(isConnected) {
-        const statusEl = document.getElementById('github-status');
-        if (statusEl) {
-            statusEl.innerHTML = isConnected ? 
-                '✅ GitHub Connected' : 
-                '⚠️ Offline Mode (Local Only)';
-            statusEl.style.color = isConnected ? '#4CAF50' : '#ff9800';
-            statusEl.style.fontSize = '12px';
-            statusEl.style.padding = '4px 10px';
-            statusEl.style.borderRadius = '12px';
-            statusEl.style.background = isConnected ? '#e8f5e9' : '#fff3e0';
-        }
     }
 
     // ============================================
@@ -649,66 +539,29 @@ class ShoppingApp {
             AppState.orders = await DB.getAll('orders');
             AppState.expenses = await DB.getAll('expenses');
             
-            console.log('Data loaded:', {
+            console.log('✅ Data loaded from GitHub:', {
                 products: AppState.products.length,
                 categories: AppState.categories.length,
                 orders: AppState.orders.length,
-                expenses: AppState.expenses.length,
-                mode: AppState.isOffline ? 'offline' : 'online'
+                expenses: AppState.expenses.length
             });
             
+            // Initialize empty files if they don't exist
             if (AppState.products.length === 0) {
-                AppState.products = [];
                 await DB.saveAll('products', []);
             }
             if (AppState.categories.length === 0) {
-                AppState.categories = [];
                 await DB.saveAll('categories', []);
             }
             if (AppState.orders.length === 0) {
-                AppState.orders = [];
                 await DB.saveAll('orders', []);
             }
             if (AppState.expenses.length === 0) {
-                AppState.expenses = [];
                 await DB.saveAll('expenses', []);
             }
         } catch (error) {
-            console.error('Error loading data:', error);
-            // Load from localStorage fallback
-            AppState.products = GitHubAPI.loadFromLocalStorage('products');
-            AppState.categories = GitHubAPI.loadFromLocalStorage('categories');
-            AppState.orders = GitHubAPI.loadFromLocalStorage('orders');
-            AppState.expenses = GitHubAPI.loadFromLocalStorage('expenses');
-            
-            // Ensure data exists
-            if (AppState.products.length === 0) {
-                AppState.products = [];
-                await DB.saveAll('products', []);
-            }
-            if (AppState.categories.length === 0) {
-                AppState.categories = [];
-                await DB.saveAll('categories', []);
-            }
-            if (AppState.orders.length === 0) {
-                AppState.orders = [];
-                await DB.saveAll('orders', []);
-            }
-            if (AppState.expenses.length === 0) {
-                AppState.expenses = [];
-                await DB.saveAll('expenses', []);
-            }
-        }
-    }
-
-    saveState() {
-        try {
-            DB.saveAll('products', AppState.products);
-            DB.saveAll('categories', AppState.categories);
-            DB.saveAll('orders', AppState.orders);
-            DB.saveAll('expenses', AppState.expenses);
-        } catch (error) {
-            console.error('Error saving state:', error);
+            console.error('❌ Error loading data from GitHub:', error);
+            throw error;
         }
     }
 
