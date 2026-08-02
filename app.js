@@ -4,10 +4,10 @@
 
 // === IMPORTANT: Replace with your GitHub credentials ===
 const GITHUB_CONFIG = {
-    token: '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',     // Your Personal Access Token
-    owner: 'ugandaproject',       // Your GitHub username
-    repo: 'shopping',              // Your repository name
-    branch: 'main'                       // or 'master'
+    token: 'ghp_YOUR_NEW_TOKEN_HERE',     // Replace with your new token
+    owner: 'ugandaproject',                // Your GitHub username
+    repo: 'shopping',                      // Your repository name
+    branch: 'main'                         // or 'master'
 };
 
 // ============================================
@@ -28,14 +28,12 @@ const GitHubAPI = {
             
             if (!response.ok) {
                 if (response.status === 404) {
-                    // File doesn't exist, return null
                     return null;
                 }
                 throw new Error(`GitHub API error: ${response.status}`);
             }
             
             const data = await response.json();
-            // Decode base64 content - handle UTF-8 properly
             const binaryString = atob(data.content);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -55,12 +53,10 @@ const GitHubAPI = {
     // Write a file to GitHub
     async writeFile(path, content, message) {
         try {
-            // First, check if file exists to get SHA
             const existing = await this.readFile(path);
             
             const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
             
-            // Convert content to JSON string and then to base64 with UTF-8 support
             const jsonString = JSON.stringify(content, null, 2);
             const encoder = new TextEncoder();
             const data = encoder.encode(jsonString);
@@ -76,7 +72,6 @@ const GitHubAPI = {
                 branch: GITHUB_CONFIG.branch
             };
             
-            // If file exists, include SHA
             if (existing && existing.sha) {
                 body.sha = existing.sha;
             }
@@ -101,13 +96,12 @@ const GitHubAPI = {
             return result;
         } catch (error) {
             console.error('Error writing file to GitHub:', error);
-            // Fallback: Save to localStorage
             this.saveToLocalStorage(path, content);
             throw error;
         }
     },
 
-    // Fallback: Save to localStorage (only as backup)
+    // Fallback: Save to localStorage
     saveToLocalStorage(path, content) {
         try {
             const table = path.replace('.json', '');
@@ -120,7 +114,7 @@ const GitHubAPI = {
         }
     },
 
-    // Load from localStorage (fallback)
+    // Load from localStorage
     loadFromLocalStorage(table) {
         try {
             const data = localStorage.getItem(`db_${table}`);
@@ -141,7 +135,6 @@ const GitHubAPI = {
 // ============================================
 
 const DB = {
-    // Get all records from a table
     async getAll(table) {
         try {
             const path = `db/${table}.json`;
@@ -149,15 +142,12 @@ const DB = {
             
             if (result && result.content) {
                 const records = result.content[table] || [];
-                // Cache in localStorage as backup only
                 this._cacheToLocalStorage(table, records);
                 return records;
             }
             
-            // If file doesn't exist, try localStorage
             const localData = GitHubAPI.loadFromLocalStorage(table);
             if (localData.length > 0) {
-                // Save to GitHub
                 await this.saveAll(table, localData);
                 return localData;
             }
@@ -169,7 +159,6 @@ const DB = {
         }
     },
 
-    // Save all records to a table
     async saveAll(table, records) {
         try {
             const path = `db/${table}.json`;
@@ -182,19 +171,15 @@ const DB = {
                 `Update ${table} data`
             );
             
-            // Also save to localStorage as backup only
             this._cacheToLocalStorage(table, records);
-            
             return { success: true };
         } catch (error) {
             console.error(`Error saving ${table}:`, error);
-            // Save to localStorage as fallback
             this._cacheToLocalStorage(table, records);
             return { success: false, error: error.message };
         }
     },
 
-    // Cache to localStorage (backup only)
     _cacheToLocalStorage(table, records) {
         try {
             const data = {};
@@ -205,13 +190,11 @@ const DB = {
         }
     },
 
-    // Get a record by ID
     async getById(table, id) {
         const records = await this.getAll(table);
         return records.find(r => r.id === id) || null;
     },
 
-    // Insert a new record
     async insert(table, record) {
         const records = await this.getAll(table);
         const maxId = records.reduce((max, r) => Math.max(max, r.id || 0), 0);
@@ -222,7 +205,6 @@ const DB = {
         return record;
     },
 
-    // Update a record
     async update(table, id, updates) {
         const records = await this.getAll(table);
         const index = records.findIndex(r => r.id === id);
@@ -232,7 +214,6 @@ const DB = {
         return records[index];
     },
 
-    // Delete a record
     async delete(table, id) {
         const records = await this.getAll(table);
         const filtered = records.filter(r => r.id !== id);
@@ -241,7 +222,6 @@ const DB = {
         return true;
     },
 
-    // Search records
     async search(table, query, fields = ['name']) {
         const records = await this.getAll(table);
         if (!query) return records;
@@ -254,13 +234,11 @@ const DB = {
         });
     },
 
-    // Get count of records
     async count(table) {
         const records = await this.getAll(table);
         return records.length;
     },
 
-    // Get total value of a field
     async sum(table, field) {
         const records = await this.getAll(table);
         return records.reduce((sum, r) => sum + (parseFloat(r[field]) || 0), 0);
@@ -288,17 +266,100 @@ const Lang = {
             this.updateUI();
         } catch (error) {
             console.error('Error loading language:', error);
-            try {
-                const fallback = await fetch('lang/en.json');
-                this.translations = await fallback.json();
-                this.currentLanguage = 'en';
-                this.applyDirection();
-                this.updateUI();
-            } catch (e) {
-                console.error('Failed to load fallback language:', e);
-                this.translations = {};
-                this.currentLanguage = 'en';
-            }
+            // Hardcoded fallback translations
+            this.translations = {
+                "app_name": "Shopping POS",
+                "logout": "Logout",
+                "sell_title": "Point of Sale",
+                "all_products": "All Products",
+                "shopping_cart": "Shopping Cart",
+                "add_product_title": "Add Product",
+                "manage_categories": "Manage Categories",
+                "expenses_title": "Expenses",
+                "treasury_title": "Treasury",
+                "profit_title": "Profit",
+                "orders_title": "Orders",
+                "tab_sell": "Sell",
+                "tab_add_product": "Add Product",
+                "tab_categories": "Categories",
+                "tab_expenses": "Expenses",
+                "tab_treasury": "Treasury",
+                "tab_profit": "Profit",
+                "tab_orders": "Orders",
+                "payment_cash": "Cash",
+                "payment_bank": "Bank Transfer",
+                "payment_card": "Card",
+                "payment_mobile": "Mobile Money",
+                "rent": "Rent",
+                "utilities": "Utilities",
+                "salaries": "Salaries",
+                "inventory": "Inventory",
+                "marketing": "Marketing",
+                "maintenance": "Maintenance",
+                "transport": "Transport",
+                "other": "Other",
+                "stock": "Stock",
+                "not_available": "Not Available",
+                "about_to_finish": "About to Finish",
+                "edit": "Edit",
+                "delete": "Delete",
+                "view": "View",
+                "close": "Close",
+                "invoice": "Invoice",
+                "invoice_number": "Invoice Number",
+                "date": "Date",
+                "client": "Client",
+                "phone": "Phone",
+                "order_items": "Order Items",
+                "product": "Product",
+                "quantity": "Quantity",
+                "sell_price": "Sell Price",
+                "total": "Total",
+                "total_profit": "Total Profit",
+                "amount_paid": "Amount Paid",
+                "remaining": "Remaining",
+                "status": "Status",
+                "paid_status": "Paid",
+                "partial_payment": "Partial Payment",
+                "pending_status": "Pending",
+                "thank_you": "Thank you for your business",
+                "print_invoice": "Print Invoice",
+                "no_products_found": "No products found",
+                "no_categories": "No categories available",
+                "no_orders": "No orders found",
+                "no_expenses": "No expenses recorded",
+                "no_items_in_cart": "No items in cart",
+                "treasury_total": "Total",
+                "available": "Available",
+                "profit_per_item": "Profit per item",
+                "client_info_required": "Client name and phone are required",
+                "cart_empty": "Cart is empty",
+                "order_saved": "Order saved successfully",
+                "error_occurred": "An error occurred",
+                "not_enough_stock": "Not enough stock. Available: {0}",
+                "out_of_stock": "Product is out of stock",
+                "product_added": "Product added successfully",
+                "product_updated": "Product updated successfully",
+                "category_added": "Category saved successfully",
+                "expense_added": "Expense added successfully",
+                "confirm_delete_product": "Are you sure you want to delete this product?",
+                "confirm_delete_category": "Are you sure you want to delete this category?",
+                "confirm_delete_order": "Are you sure you want to delete this order?",
+                "confirm_delete_expense": "Are you sure you want to delete this expense?",
+                "confirm_reset_cart": "Are you sure you want to clear the cart?",
+                "product_name_required": "Product name and sell price are required",
+                "category_name_required": "Category name is required",
+                "expense_required": "Date and amount are required",
+                "order_not_found": "Order not found",
+                "save_category": "Save Category",
+                "update_category": "Update Category",
+                "no_category": "No Category",
+                "dir": "ltr",
+                "text_align": "left"
+            };
+            this.currentLanguage = 'en';
+            this.applyDirection();
+            this.updateUI();
         }
     },
     
@@ -319,22 +380,18 @@ const Lang = {
     },
     
     updateUI() {
-        // Update all elements with data-i18n attribute
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.dataset.i18n;
             el.textContent = this.get(key);
         });
         
-        // Update placeholders
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.dataset.i18nPlaceholder;
             el.placeholder = this.get(key);
         });
         
-        // Update title
         document.title = this.get('app_name') + ' - POS System';
         
-        // Specific element updates
         const appName = document.getElementById('app-name');
         if (appName) appName.innerHTML = '🏪 ' + this.get('app_name');
         
@@ -368,7 +425,6 @@ const Lang = {
         const ordersTitle = document.getElementById('orders-title');
         if (ordersTitle) ordersTitle.textContent = '📋 ' + this.get('orders_title');
         
-        // Tab buttons
         const tabTranslations = {
             'sell': 'tab_sell',
             'add-product': 'tab_add_product',
@@ -385,7 +441,6 @@ const Lang = {
             }
         });
         
-        // Payment type selects
         ['payment-type', 'expense-payment'].forEach(id => {
             const select = document.getElementById(id);
             if (select) {
@@ -397,7 +452,6 @@ const Lang = {
             }
         });
         
-        // Expense category select
         const expenseCategorySelect = document.getElementById('expense-category');
         if (expenseCategorySelect) {
             const options = expenseCategorySelect.options;
@@ -489,7 +543,6 @@ class ShoppingApp {
 
     async loadData() {
         try {
-            // Load from GitHub JSON files via DB module
             AppState.products = await DB.getAll('products');
             AppState.categories = await DB.getAll('categories');
             AppState.orders = await DB.getAll('orders');
@@ -502,7 +555,6 @@ class ShoppingApp {
                 expenses: AppState.expenses.length
             });
             
-            // If no data, initialize with empty arrays
             if (AppState.products.length === 0) {
                 AppState.products = [];
                 await DB.saveAll('products', []);
@@ -521,7 +573,6 @@ class ShoppingApp {
             }
         } catch (error) {
             console.error('Error loading data:', error);
-            // Initialize empty arrays
             AppState.products = [];
             AppState.categories = [];
             AppState.orders = [];
@@ -826,7 +877,6 @@ class ShoppingApp {
             </tr>
         `).join('');
 
-        // Update category navigation
         const nav = document.getElementById('categories-nav');
         if (nav) {
             let html = `<button onclick="app.filterProducts('all')" class="active">${Lang.get('all_products')}</button>`;
@@ -1742,7 +1792,6 @@ class ShoppingApp {
 
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        // Clear only session data, not the database cache
         localStorage.removeItem('auth_session');
         localStorage.removeItem('cart_items');
         localStorage.removeItem('cart_total');
@@ -1758,7 +1807,6 @@ function logout() {
 let app;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if user is logged in
     const session = localStorage.getItem('auth_session');
     if (!session) {
         window.location.href = 'login.html';
