@@ -4,7 +4,7 @@
 
 // === IMPORTANT: Replace with your GitHub credentials ===
 const GITHUB_CONFIG = {
-    token: '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',     // Replace with your new token
+    token: 'ghp_YOUR_NEW_TOKEN_HERE',     // Replace with your new token
     owner: 'ugandaproject',                // Your GitHub username
     repo: 'shopping',                      // Your repository name
     branch: 'main'                         // or 'master'
@@ -443,24 +443,24 @@ const Lang = {
         
         ['payment-type', 'expense-payment'].forEach(id => {
             const select = document.getElementById(id);
-            if (select) {
+            if (select && select.options) {
                 const options = select.options;
-                if (options[0]) options[0].text = this.get('payment_cash');
-                if (options[1]) options[1].text = this.get('payment_bank');
-                if (options[2]) options[2].text = this.get('payment_card');
-                if (options[3]) options[3].text = this.get('payment_mobile');
+                if (options.length > 0 && options[0]) options[0].text = this.get('payment_cash');
+                if (options.length > 1 && options[1]) options[1].text = this.get('payment_bank');
+                if (options.length > 2 && options[2]) options[2].text = this.get('payment_card');
+                if (options.length > 3 && options[3]) options[3].text = this.get('payment_mobile');
             }
         });
         
         const expenseCategorySelect = document.getElementById('expense-category');
-        if (expenseCategorySelect) {
+        if (expenseCategorySelect && expenseCategorySelect.options) {
             const options = expenseCategorySelect.options;
             const cats = ['rent', 'utilities', 'salaries', 'inventory', 'marketing', 'maintenance', 'transport', 'other'];
-            options.forEach((opt, index) => {
-                if (cats[index]) {
-                    opt.text = this.get(cats[index]);
+            for (let i = 0; i < options.length && i < cats.length; i++) {
+                if (options[i]) {
+                    options[i].text = this.get(cats[i]);
                 }
-            });
+            }
         }
     }
 };
