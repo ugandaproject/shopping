@@ -5,7 +5,7 @@
 // ⚠️ IMPORTANT: Replace with your NEW GitHub token
 // Get token from: https://github.com/settings/tokens
 const GITHUB_CONFIG = {
-    token: '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',     // Replace with your new token
+    token: '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',     // Replace with your new token
     owner: 'ugandaproject',                // Your GitHub username
     repo: 'shopping',                      // Your repository name
     branch: 'main'                         // or 'master'
